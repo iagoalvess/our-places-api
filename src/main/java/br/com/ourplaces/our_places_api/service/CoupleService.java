@@ -13,9 +13,9 @@ import java.util.UUID;
 
 @Service
 public class CoupleService {
-    private UserService userService;
-    private CoupleRepository coupleRepository;
-    private CoupleMapper coupleMapper;
+    private final UserService userService;
+    private final CoupleRepository coupleRepository;
+    private final CoupleMapper coupleMapper;
 
     public CoupleService(CoupleRepository coupleRepository, UserService userService, CoupleMapper coupleMapper) {
         this.coupleRepository = coupleRepository;

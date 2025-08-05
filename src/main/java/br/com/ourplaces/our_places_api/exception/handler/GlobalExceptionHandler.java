@@ -12,11 +12,12 @@ import org.springframework.web.bind.annotation.RestControllerAdvice;
 
 import java.time.Instant;
 import java.util.Map;
+import java.util.Optional;
 import java.util.stream.Collectors;
 
 @RestControllerAdvice
 public class GlobalExceptionHandler {
-    private record ErrorResponse(int status, String error, String message, Instant timestamp) {
+    public record ErrorResponse(int status, String error, String message, Instant timestamp) {
     }
 
     @ExceptionHandler(EmailAlreadyExistsException.class)
@@ -33,7 +34,7 @@ public class GlobalExceptionHandler {
 
     @ExceptionHandler(MethodArgumentNotValidException.class)
     public ResponseEntity<Map<String, Object>> handleValidationExceptions(MethodArgumentNotValidException ex) {
-        Map<String, String> errors = ex.getBindingResult().getFieldErrors().stream().collect(Collectors.toMap(FieldError::getField, DefaultMessageSourceResolvable::getDefaultMessage));
+        Map<String, String> errors = ex.getBindingResult().getFieldErrors().stream().collect(Collectors.toMap(FieldError::getField, err -> Optional.ofNullable(err.getDefaultMessage()).orElse("")));
 
         Map<String, Object> errorBody = Map.of("status", HttpStatus.BAD_REQUEST.value(), "error", "Validation Failed", "messages", errors, "timestamp", Instant.now());
 
