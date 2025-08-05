@@ -1,14 +1,21 @@
 package br.com.ourplaces.our_places_api.service;
 
 import br.com.ourplaces.our_places_api.dto.CoupleViewDTO;
+import br.com.ourplaces.our_places_api.dto.ImportantDateDTO;
 import br.com.ourplaces.our_places_api.dto.UserCreateDTO;
+import br.com.ourplaces.our_places_api.exception.ResourceNotFoundException;
 import br.com.ourplaces.our_places_api.mapper.CoupleMapper;
+import br.com.ourplaces.our_places_api.mapper.ImportantDateMapper;
 import br.com.ourplaces.our_places_api.model.Couple;
+import br.com.ourplaces.our_places_api.model.ImportantDate;
 import br.com.ourplaces.our_places_api.model.User;
 import br.com.ourplaces.our_places_api.repository.CoupleRepository;
 import jakarta.transaction.Transactional;
+import org.springframework.context.annotation.Import;
+import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.stereotype.Service;
 
+import java.util.Set;
 import java.util.UUID;
 
 @Service
@@ -16,11 +23,13 @@ public class CoupleService {
     private final UserService userService;
     private final CoupleRepository coupleRepository;
     private final CoupleMapper coupleMapper;
+    private final ImportantDateMapper importantDateMapper;
 
-    public CoupleService(CoupleRepository coupleRepository, UserService userService, CoupleMapper coupleMapper) {
+    public CoupleService(CoupleRepository coupleRepository, UserService userService, CoupleMapper coupleMapper, ImportantDateMapper importantDateMapper) {
         this.coupleRepository = coupleRepository;
         this.userService = userService;
         this.coupleMapper = coupleMapper;
+        this.importantDateMapper = importantDateMapper;
     }
 
     @Transactional
@@ -49,5 +58,25 @@ public class CoupleService {
 
         Couple updatedCouple = coupleRepository.save(couple);
         return coupleMapper.toViewDTO(updatedCouple);
+    }
+
+    @Transactional
+    public CoupleViewDTO addImportantDate(ImportantDateDTO dateDTO) {
+        User currentUser = (User) SecurityContextHolder.getContext().getAuthentication().getPrincipal();
+        Couple couple = coupleRepository.findByUser1IdOrUser2Id(currentUser.getId(), currentUser.getId()).orElseThrow(() -> new ResourceNotFoundException("Couple not found for the authenticated user."));
+
+        ImportantDate newDate = importantDateMapper.toModel(dateDTO);
+        couple.getImportantDates().add(newDate);
+
+        Couple updatedCouple = coupleRepository.save(couple);
+        return coupleMapper.toViewDTO(updatedCouple);
+    }
+
+    @Transactional
+    public Set<ImportantDateDTO> getImportantDates() {
+        User currentUser = (User) SecurityContextHolder.getContext().getAuthentication().getPrincipal();
+        Couple couple = coupleRepository.findByUser1IdOrUser2Id(currentUser.getId(), currentUser.getId()).orElseThrow(() -> new ResourceNotFoundException("Couple not found for the authenticated user."));
+
+        return importantDateMapper.toDTOSet(couple.getImportantDates());
     }
 }
