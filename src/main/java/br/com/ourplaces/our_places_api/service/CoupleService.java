@@ -9,6 +9,8 @@ import br.com.ourplaces.our_places_api.repository.CoupleRepository;
 import jakarta.transaction.Transactional;
 import org.springframework.stereotype.Service;
 
+import java.util.UUID;
+
 @Service
 public class CoupleService {
     private UserService userService;
@@ -19,6 +21,18 @@ public class CoupleService {
         this.coupleRepository = coupleRepository;
         this.userService = userService;
         this.coupleMapper = coupleMapper;
+    }
+
+    @Transactional
+    public CoupleViewDTO createCouple(UserCreateDTO user1DTO) {
+        UserModel user1 = userService.register(user1DTO);
+
+        CoupleModel couple = new CoupleModel();
+        couple.setUser1(user1);
+        couple.setInviteCode(UUID.randomUUID().toString());
+
+        CoupleModel savedCouple = coupleRepository.save(couple);
+        return coupleMapper.toViewDTO(savedCouple);
     }
 
     @Transactional
