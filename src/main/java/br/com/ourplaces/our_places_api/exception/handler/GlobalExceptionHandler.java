@@ -2,7 +2,6 @@ package br.com.ourplaces.our_places_api.exception.handler;
 
 import br.com.ourplaces.our_places_api.exception.EmailAlreadyExistsException;
 import br.com.ourplaces.our_places_api.exception.ResourceNotFoundException;
-import org.springframework.context.support.DefaultMessageSourceResolvable;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.validation.FieldError;
@@ -17,9 +16,6 @@ import java.util.stream.Collectors;
 
 @RestControllerAdvice
 public class GlobalExceptionHandler {
-    public record ErrorResponse(int status, String error, String message, Instant timestamp) {
-    }
-
     @ExceptionHandler(EmailAlreadyExistsException.class)
     public ResponseEntity<ErrorResponse> handleEmailAlreadyExistsException(EmailAlreadyExistsException ex) {
         ErrorResponse response = new ErrorResponse(HttpStatus.CONFLICT.value(), "Conflict", ex.getMessage(), Instant.now());
@@ -39,5 +35,10 @@ public class GlobalExceptionHandler {
         Map<String, Object> errorBody = Map.of("status", HttpStatus.BAD_REQUEST.value(), "error", "Validation Failed", "messages", errors, "timestamp", Instant.now());
 
         return new ResponseEntity<>(errorBody, HttpStatus.BAD_REQUEST);
+    }
+
+    public record ErrorResponse(int status, String error,
+                                String message,
+                                Instant timestamp) {
     }
 }
