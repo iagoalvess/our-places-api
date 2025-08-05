@@ -14,18 +14,18 @@ import java.util.Set;
 @Setter
 @NoArgsConstructor
 @AllArgsConstructor
-public class CoupleModel {
+public class Couple {
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
 
     @OneToOne
     @JoinColumn(name = "user1_id", referencedColumnName = "id")
-    private UserModel user1;
+    private User user1;
 
     @OneToOne
     @JoinColumn(name = "user2_id", referencedColumnName = "id")
-    private UserModel user2;
+    private User user2;
 
     @Column(unique = true)
     private String inviteCode;

@@ -2,7 +2,7 @@ package br.com.ourplaces.our_places_api.controller;
 
 import br.com.ourplaces.our_places_api.dto.LoginDTO;
 import br.com.ourplaces.our_places_api.dto.TokenDTO;
-import br.com.ourplaces.our_places_api.model.UserModel;
+import br.com.ourplaces.our_places_api.model.User;
 import br.com.ourplaces.our_places_api.service.TokenService;
 import jakarta.validation.Valid;
 import org.springframework.http.ResponseEntity;
@@ -29,7 +29,7 @@ public class AuthenticationController {
         var usernamePassword = new UsernamePasswordAuthenticationToken(loginDTO.email(), loginDTO.password());
         var auth = this.authenticationManager.authenticate(usernamePassword);
 
-        var token = tokenService.generateToken((UserModel) auth.getPrincipal());
+        var token = tokenService.generateToken((User) auth.getPrincipal());
         return ResponseEntity.ok(new TokenDTO(token));
     }
 

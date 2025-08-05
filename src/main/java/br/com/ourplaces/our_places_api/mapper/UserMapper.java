@@ -2,7 +2,7 @@ package br.com.ourplaces.our_places_api.mapper;
 
 import br.com.ourplaces.our_places_api.dto.UserCreateDTO;
 import br.com.ourplaces.our_places_api.dto.UserViewDTO;
-import br.com.ourplaces.our_places_api.model.UserModel;
+import br.com.ourplaces.our_places_api.model.User;
 import org.mapstruct.Mapper;
 import org.mapstruct.Mapping;
 
@@ -14,7 +14,7 @@ public interface UserMapper {
     @Mapping(target = "accountNonLocked", constant = "true")
     @Mapping(target = "credentialsNonExpired", constant = "true")
     @Mapping(target = "authorities", ignore = true)
-    UserModel toModel(UserCreateDTO dto);
+    User toModel(UserCreateDTO dto);
 
-    UserViewDTO toViewDTO(UserModel model);
+    UserViewDTO toViewDTO(User model);
 }

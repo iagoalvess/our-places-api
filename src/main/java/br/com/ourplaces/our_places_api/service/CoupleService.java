@@ -3,8 +3,8 @@ package br.com.ourplaces.our_places_api.service;
 import br.com.ourplaces.our_places_api.dto.CoupleViewDTO;
 import br.com.ourplaces.our_places_api.dto.UserCreateDTO;
 import br.com.ourplaces.our_places_api.mapper.CoupleMapper;
-import br.com.ourplaces.our_places_api.model.CoupleModel;
-import br.com.ourplaces.our_places_api.model.UserModel;
+import br.com.ourplaces.our_places_api.model.Couple;
+import br.com.ourplaces.our_places_api.model.User;
 import br.com.ourplaces.our_places_api.repository.CoupleRepository;
 import jakarta.transaction.Transactional;
 import org.springframework.stereotype.Service;
@@ -25,29 +25,29 @@ public class CoupleService {
 
     @Transactional
     public CoupleViewDTO createCouple(UserCreateDTO user1DTO) {
-        UserModel user1 = userService.register(user1DTO);
+        User user1 = userService.register(user1DTO);
 
-        CoupleModel couple = new CoupleModel();
+        Couple couple = new Couple();
         couple.setUser1(user1);
         couple.setInviteCode(UUID.randomUUID().toString());
 
-        CoupleModel savedCouple = coupleRepository.save(couple);
+        Couple savedCouple = coupleRepository.save(couple);
         return coupleMapper.toViewDTO(savedCouple);
     }
 
     @Transactional
     public CoupleViewDTO joinCouple(String inviteCode, UserCreateDTO user2DTO) {
-        CoupleModel couple = coupleRepository.findByInviteCode(inviteCode).orElseThrow(() -> new IllegalArgumentException("Invite code not found or already in use"));
+        Couple couple = coupleRepository.findByInviteCode(inviteCode).orElseThrow(() -> new IllegalArgumentException("Invite code not found or already in use"));
 
         if (couple.getUser2() != null) {
             throw new IllegalArgumentException("This couple is already complete.");
         }
 
-        UserModel user2 = userService.register(user2DTO);
+        User user2 = userService.register(user2DTO);
         couple.setUser2(user2);
         couple.setInviteCode(inviteCode);
 
-        CoupleModel updatedCouple = coupleRepository.save(couple);
+        Couple updatedCouple = coupleRepository.save(couple);
         return coupleMapper.toViewDTO(updatedCouple);
     }
 }

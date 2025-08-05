@@ -3,7 +3,7 @@ package br.com.ourplaces.our_places_api.service;
 import br.com.ourplaces.our_places_api.dto.UserCreateDTO;
 import br.com.ourplaces.our_places_api.exception.EmailAlreadyExistsException;
 import br.com.ourplaces.our_places_api.mapper.UserMapper;
-import br.com.ourplaces.our_places_api.model.UserModel;
+import br.com.ourplaces.our_places_api.model.User;
 import br.com.ourplaces.our_places_api.repository.UserRepository;
 import jakarta.transaction.Transactional;
 import org.springframework.security.crypto.password.PasswordEncoder;
@@ -22,14 +22,14 @@ public class UserService {
     }
 
     @Transactional
-    public UserModel register(UserCreateDTO userCreateDTO) {
+    public User register(UserCreateDTO userCreateDTO) {
         userRepository.findByEmail(userCreateDTO.email()).ifPresent(user -> {
             throw new EmailAlreadyExistsException("Email already exists");
         });
 
-        UserModel userModel = userMapper.toModel(userCreateDTO);
-        userModel.setPassword(passwordEncoder.encode(userCreateDTO.password()));
+        User user = userMapper.toModel(userCreateDTO);
+        user.setPassword(passwordEncoder.encode(userCreateDTO.password()));
 
-        return userRepository.save(userModel);
+        return userRepository.save(user);
     }
 }
