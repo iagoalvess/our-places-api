@@ -1,0 +1,12 @@
+package br.com.ourplaces.our_places_api.repository;
+
+import br.com.ourplaces.our_places_api.model.CoupleModel;
+import org.springframework.data.jpa.repository.JpaRepository;
+import org.springframework.stereotype.Repository;
+
+import java.util.Optional;
+
+@Repository
+public interface CoupleRepository extends JpaRepository<CoupleModel, Integer> {
+    Optional<CoupleModel> findByInviteCode(String inviteCode);
+}
