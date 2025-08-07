@@ -14,7 +14,10 @@ import jakarta.transaction.Transactional;
 import org.springframework.context.annotation.Import;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.stereotype.Service;
+import org.springframework.web.multipart.MultipartFile;
 
+import java.io.IOException;
+import java.util.Map;
 import java.util.Set;
 import java.util.UUID;
 
@@ -78,5 +81,35 @@ public class CoupleService {
         Couple couple = coupleRepository.findByUser1IdOrUser2Id(currentUser.getId(), currentUser.getId()).orElseThrow(() -> new ResourceNotFoundException("Couple not found for the authenticated user."));
 
         return importantDateMapper.toDTOSet(couple.getImportantDates());
+    }
+
+    @Transactional
+    public CoupleViewDTO getCouple() {
+        User currentUser = (User) SecurityContextHolder.getContext().getAuthentication().getPrincipal();
+        Couple couple = coupleRepository.findByUser1IdOrUser2Id(currentUser.getId(), currentUser.getId()).orElseThrow(() -> new ResourceNotFoundException("Couple not found for the authenticated user."));
+
+        return coupleMapper.toViewDTO(couple);
+    }
+
+    @Transactional
+    public void updateCouplePicture(MultipartFile file) throws IOException {
+        User currentUser = (User) SecurityContextHolder.getContext().getAuthentication().getPrincipal();
+        Couple couple = coupleRepository.findByUser1IdOrUser2Id(currentUser.getId(), currentUser.getId()).orElseThrow(() -> new ResourceNotFoundException("Couple not found for the authenticated user."));
+
+        couple.setCouplePicture(file.getBytes());
+        couple.setPictureMediaType(file.getContentType());
+        coupleRepository.save(couple);
+    }
+
+    @Transactional
+    public Map<String, Object> getCouplePicture() {
+        User currentUser = (User) SecurityContextHolder.getContext().getAuthentication().getPrincipal();
+        Couple couple = coupleRepository.findByUser1IdOrUser2Id(currentUser.getId(), currentUser.getId()).orElseThrow(() -> new ResourceNotFoundException("Couple not found for the authenticated user."));
+
+        if (couple.getCouplePicture() == null) {
+            throw new ResourceNotFoundException("Couple does not have a profile picture.");
+        }
+
+        return Map.of("imageBytes", couple.getCouplePicture(), "mediaType", couple.getPictureMediaType());
     }
 }

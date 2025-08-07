@@ -33,4 +33,10 @@ public class Couple {
     @ElementCollection(fetch = FetchType.EAGER)
     @CollectionTable(name = "couple_important_dates", joinColumns = @JoinColumn(name = "couple_id"))
     private Set<ImportantDate> importantDates;
+
+    @Lob
+    @Basic(fetch = FetchType.LAZY)
+    private byte[] couplePicture;
+
+    private String pictureMediaType;
 }
