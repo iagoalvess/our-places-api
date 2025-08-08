@@ -13,11 +13,11 @@ import br.com.ourplaces.our_places_api.model.User;
 import br.com.ourplaces.our_places_api.repository.CoupleRepository;
 import br.com.ourplaces.our_places_api.repository.PlaceRepository;
 import br.com.ourplaces.our_places_api.repository.RatingRepository;
+import br.com.ourplaces.our_places_api.repository.UserRepository;
 import jakarta.transaction.Transactional;
+import org.springframework.security.access.AccessDeniedException;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.stereotype.Service;
-
-import org.springframework.security.access.AccessDeniedException;
 
 import java.util.List;
 import java.util.stream.Collectors;
@@ -27,12 +27,14 @@ public class PlaceService {
     private final PlaceRepository placeRepository;
     private final CoupleRepository coupleRepository;
     private final RatingRepository ratingRepository;
+    private final UserRepository userRepository;
     private final PlaceMapper placeMapper;
 
-    public PlaceService(PlaceRepository placeRepository, CoupleRepository coupleRepository, RatingRepository ratingRepository, PlaceMapper placeMapper) {
+    public PlaceService(PlaceRepository placeRepository, CoupleRepository coupleRepository, RatingRepository ratingRepository, UserRepository userRepository, PlaceMapper placeMapper) {
         this.placeRepository = placeRepository;
         this.coupleRepository = coupleRepository;
         this.ratingRepository = ratingRepository;
+        this.userRepository = userRepository;
         this.placeMapper = placeMapper;
     }
 
@@ -69,7 +71,10 @@ public class PlaceService {
 
     @Transactional
     public PlaceViewDTO addRating(Long placeId, RatingDTO ratingDTO) {
-        User currentUser = (User) SecurityContextHolder.getContext().getAuthentication().getPrincipal();
+        User principal = (User) SecurityContextHolder.getContext().getAuthentication().getPrincipal();
+
+        User currentUser = userRepository.findById(principal.getId()).orElseThrow(() -> new ResourceNotFoundException("Authenticated user not found in database."));
+
         Place place = placeRepository.findById(placeId).orElseThrow(() -> new ResourceNotFoundException("Place not found with id: " + placeId));
 
         if (!place.getCouple().getUser1().getId().equals(currentUser.getId()) && !place.getCouple().getUser2().getId().equals(currentUser.getId())) {

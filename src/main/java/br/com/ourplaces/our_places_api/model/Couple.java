@@ -6,6 +6,8 @@ import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.Setter;
 
+import java.util.ArrayList;
+import java.util.List;
 import java.util.Set;
 
 @Entity
@@ -32,7 +34,8 @@ public class Couple {
 
     @ElementCollection(fetch = FetchType.EAGER)
     @CollectionTable(name = "couple_important_dates", joinColumns = @JoinColumn(name = "couple_id"))
-    private Set<ImportantDate> importantDates;
+    @OrderColumn(name = "date_order")
+    private List<ImportantDate> importantDates = new ArrayList<>();
 
     @Lob
     @Basic(fetch = FetchType.LAZY)

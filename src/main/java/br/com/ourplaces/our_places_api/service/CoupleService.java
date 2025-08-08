@@ -17,10 +17,7 @@ import org.springframework.stereotype.Service;
 import org.springframework.web.multipart.MultipartFile;
 
 import java.io.IOException;
-import java.util.Map;
-import java.util.Objects;
-import java.util.Set;
-import java.util.UUID;
+import java.util.*;
 
 @Service
 public class CoupleService {
@@ -77,11 +74,12 @@ public class CoupleService {
     }
 
     @Transactional
-    public Set<ImportantDateDTO> getImportantDates() {
+    public List<ImportantDateDTO> getImportantDates() {
         User currentUser = (User) SecurityContextHolder.getContext().getAuthentication().getPrincipal();
-        Couple couple = coupleRepository.findByUser1IdOrUser2Id(currentUser.getId(), currentUser.getId()).orElseThrow(() -> new ResourceNotFoundException("Couple not found for the authenticated user."));
+        Couple couple = coupleRepository.findByUser1IdOrUser2Id(currentUser.getId(), currentUser.getId())
+                .orElseThrow(() -> new ResourceNotFoundException("Couple not found for the authenticated user."));
 
-        return importantDateMapper.toDTOSet(couple.getImportantDates());
+        return importantDateMapper.toDTOList(couple.getImportantDates());
     }
 
     @Transactional

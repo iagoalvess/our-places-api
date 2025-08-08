@@ -12,7 +12,7 @@ import java.util.List;
 import java.util.Set;
 
 @RestController
-@RequestMapping("/api/couples/me/important-dates")
+@RequestMapping("/api/couples/important-dates")
 public class ImportantDateController {
     private final CoupleService coupleService;
 
@@ -27,8 +27,8 @@ public class ImportantDateController {
     }
 
     @GetMapping
-    public ResponseEntity<Set<ImportantDateDTO>> getImportantDates() {
-        Set<ImportantDateDTO> dates = coupleService.getImportantDates();
+    public ResponseEntity<List<ImportantDateDTO>> getImportantDates() {
+        List<ImportantDateDTO> dates = coupleService.getImportantDates();
         return ResponseEntity.ok(dates);
     }
 }

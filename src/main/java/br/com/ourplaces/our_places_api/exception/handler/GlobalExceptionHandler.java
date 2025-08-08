@@ -2,6 +2,7 @@ package br.com.ourplaces.our_places_api.exception.handler;
 
 import br.com.ourplaces.our_places_api.exception.EmailAlreadyExistsException;
 import br.com.ourplaces.our_places_api.exception.ResourceNotFoundException;
+import br.com.ourplaces.our_places_api.exception.UserAlreadyRatedException;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.validation.FieldError;
@@ -35,6 +36,12 @@ public class GlobalExceptionHandler {
         Map<String, Object> errorBody = Map.of("status", HttpStatus.BAD_REQUEST.value(), "error", "Validation Failed", "messages", errors, "timestamp", Instant.now());
 
         return new ResponseEntity<>(errorBody, HttpStatus.BAD_REQUEST);
+    }
+
+    @ExceptionHandler(UserAlreadyRatedException.class)
+    public ResponseEntity<ErrorResponse> handleUserAlreadyRatedException(UserAlreadyRatedException ex) {
+        ErrorResponse response = new ErrorResponse(HttpStatus.CONFLICT.value(), "Conflict", ex.getMessage(), Instant.now());
+        return new ResponseEntity<>(response, HttpStatus.CONFLICT);
     }
 
     public record ErrorResponse(int status, String error,
