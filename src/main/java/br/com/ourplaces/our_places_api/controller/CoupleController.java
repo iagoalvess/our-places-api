@@ -2,6 +2,7 @@ package br.com.ourplaces.our_places_api.controller;
 
 import br.com.ourplaces.our_places_api.dto.CoupleViewDTO;
 import br.com.ourplaces.our_places_api.dto.UserCreateDTO;
+import br.com.ourplaces.our_places_api.exception.ResourceNotFoundException;
 import br.com.ourplaces.our_places_api.service.CoupleService;
 import jakarta.validation.Valid;
 import org.springframework.http.HttpStatus;
@@ -41,10 +42,32 @@ public class CoupleController {
     }
 
     @PostMapping("/picture")
-    public ResponseEntity<Void> uploadCouplePicture(@RequestParam("file") MultipartFile file) throws IOException {
-        coupleService.updateCouplePicture(file);
-        return ResponseEntity.ok().build();
+    public ResponseEntity<?> uploadCouplePicture(@RequestParam("file") MultipartFile file) {
+        try {
+            if (file.isEmpty()) {
+                return ResponseEntity.badRequest().body("File not sent.");
+            }
+
+            if (file.getSize() > 5 * 1024 * 1024) {
+                return ResponseEntity.status(HttpStatus.PAYLOAD_TOO_LARGE)
+                        .body("File too large. Maximum 5MB.");
+            }
+
+            coupleService.updateCouplePicture(file);
+            return ResponseEntity.ok().build();
+
+        } catch (IllegalArgumentException e) {
+            return ResponseEntity.badRequest().body(e.getMessage());
+
+        } catch (IOException e) {
+            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)
+                    .body("Error processing file.");
+
+        } catch (ResourceNotFoundException e) {
+            return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body(e.getMessage());
+        }
     }
+
 
     @GetMapping("/picture")
     public ResponseEntity<byte[]> getCouplePicture() {

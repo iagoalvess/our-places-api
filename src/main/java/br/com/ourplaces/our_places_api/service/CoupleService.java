@@ -18,6 +18,7 @@ import org.springframework.web.multipart.MultipartFile;
 
 import java.io.IOException;
 import java.util.Map;
+import java.util.Objects;
 import java.util.Set;
 import java.util.UUID;
 
@@ -93,13 +94,25 @@ public class CoupleService {
 
     @Transactional
     public void updateCouplePicture(MultipartFile file) throws IOException {
-        User currentUser = (User) SecurityContextHolder.getContext().getAuthentication().getPrincipal();
-        Couple couple = coupleRepository.findByUser1IdOrUser2Id(currentUser.getId(), currentUser.getId()).orElseThrow(() -> new ResourceNotFoundException("Couple not found for the authenticated user."));
+        if (file.isEmpty()) {
+            throw new IllegalArgumentException("\n" + "Empty file.");
+        }
+
+        if (!Objects.requireNonNull(file.getContentType()).startsWith("image/")) {
+            throw new IllegalArgumentException("\n" + "Invalid file type. Please upload an image.");
+        }
+
+        User currentUser = (User) SecurityContextHolder.getContext()
+                .getAuthentication().getPrincipal();
+
+        Couple couple = coupleRepository.findByUser1IdOrUser2Id(currentUser.getId(), currentUser.getId())
+                .orElseThrow(() -> new ResourceNotFoundException("Couple not found for the authenticated user."));
 
         couple.setCouplePicture(file.getBytes());
         couple.setPictureMediaType(file.getContentType());
         coupleRepository.save(couple);
     }
+
 
     @Transactional
     public Map<String, Object> getCouplePicture() {
