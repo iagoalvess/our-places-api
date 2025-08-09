@@ -37,4 +37,10 @@ public class PlaceController {
         PlaceViewDTO updatedPlace = placeService.addRating(placeId, ratingDTO);
         return new ResponseEntity<>(updatedPlace, HttpStatus.OK);
     }
+
+    @DeleteMapping("/{placeId}")
+    public ResponseEntity<Void> deletePlace(@PathVariable Long placeId) {
+        placeService.delete(placeId);
+        return new ResponseEntity<>(HttpStatus.NO_CONTENT);
+    }
 }

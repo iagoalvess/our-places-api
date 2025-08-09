@@ -81,6 +81,20 @@ public class CoupleService {
     }
 
     @Transactional
+    public void removeImportantDate(String description, java.time.LocalDate date) {
+        Couple couple = getAuthenticatedCouple();
+
+        boolean removed = couple.getImportantDates()
+                .removeIf(d -> d.getDescription().equals(description) && d.getDate().equals(date));
+
+        if (!removed) {
+            throw new ResourceNotFoundException("Important date not found.");
+        }
+
+        coupleRepository.save(couple);
+    }
+
+    @Transactional
     public CoupleViewDTO getCouple() {
         Couple couple = getAuthenticatedCouple();
 

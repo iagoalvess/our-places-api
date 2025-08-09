@@ -97,4 +97,25 @@ public class PlaceService {
         return placeMapper.toPlaceViewDTO(updatedPlace);
     }
 
+    @Transactional
+    public void delete(Long placeId) {
+        User currentUser = currentUserService.getAuthenticatedUser();
+
+        Place place = placeRepository.findById(placeId)
+                .orElseThrow(() -> new ResourceNotFoundException("Place not found with id: " + placeId));
+
+        Long currentUserId = currentUser.getId();
+        Long user1Id = place.getCouple().getUser1() != null ? place.getCouple().getUser1().getId() : null;
+        Long user2Id = place.getCouple().getUser2() != null ? place.getCouple().getUser2().getId() : null;
+
+        boolean isFromCouple =
+                (user1Id != null && user1Id.equals(currentUserId)) ||
+                (user2Id != null && user2Id.equals(currentUserId));
+
+        if (!isFromCouple) {
+            throw new org.springframework.security.access.AccessDeniedException("User is not allowed to delete this place.");
+        }
+
+        placeRepository.delete(place);
+    }
 }
