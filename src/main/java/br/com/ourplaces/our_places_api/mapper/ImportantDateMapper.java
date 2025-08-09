@@ -2,16 +2,17 @@ package br.com.ourplaces.our_places_api.mapper;
 
 import br.com.ourplaces.our_places_api.dto.ImportantDateDTO;
 import br.com.ourplaces.our_places_api.model.ImportantDate;
-import org.mapstruct.Mapper;
 
-import java.util.List;
-import java.util.Set;
+public final class ImportantDateMapper {
+    private ImportantDateMapper() {}
 
-@Mapper(componentModel = "spring")
-public interface ImportantDateMapper {
-    ImportantDate toModel(ImportantDateDTO dto);
+    public static ImportantDate toModel(ImportantDateDTO dto) {
+        if (dto == null) return null;
+        return new ImportantDate(dto.description(), dto.date());
+    }
 
-    ImportantDateDTO toDTO(ImportantDate model);
-
-    List<ImportantDateDTO> toDTOList(List<ImportantDate> models);
+    public static ImportantDateDTO toDTO(ImportantDate model) {
+        if (model == null) return null;
+        return new ImportantDateDTO(model.getDescription(), model.getDate());
+    }
 }

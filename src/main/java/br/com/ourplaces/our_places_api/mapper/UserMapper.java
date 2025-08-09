@@ -3,18 +3,24 @@ package br.com.ourplaces.our_places_api.mapper;
 import br.com.ourplaces.our_places_api.dto.UserCreateDTO;
 import br.com.ourplaces.our_places_api.dto.UserViewDTO;
 import br.com.ourplaces.our_places_api.model.User;
-import org.mapstruct.Mapper;
-import org.mapstruct.Mapping;
+import org.springframework.stereotype.Component;
 
-@Mapper(componentModel = "spring")
-public interface UserMapper {
-    @Mapping(target = "id", ignore = true)
-    @Mapping(target = "enabled", constant = "true")
-    @Mapping(target = "accountNonExpired", constant = "true")
-    @Mapping(target = "accountNonLocked", constant = "true")
-    @Mapping(target = "credentialsNonExpired", constant = "true")
-    @Mapping(target = "authorities", ignore = true)
-    User toModel(UserCreateDTO dto);
+@Component
+public class UserMapper {
+    public User toModel(UserCreateDTO dto) {
+        if (dto == null) return null;
+        User user = new User();
+        user.setName(dto.name());
+        user.setEmail(dto.email());
+        user.setEnabled(true);
+        user.setAccountNonExpired(true);
+        user.setAccountNonLocked(true);
+        user.setCredentialsNonExpired(true);
+        return user;
+    }
 
-    UserViewDTO toViewDTO(User model);
+    public UserViewDTO toViewDTO(User model) {
+        if (model == null) return null;
+        return new UserViewDTO(model.getId(), model.getName(), model.getEmail());
+    }
 }

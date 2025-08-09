@@ -32,9 +32,9 @@ public class PlaceController {
         return new ResponseEntity<>(places, HttpStatus.OK);
     }
 
-    @PostMapping("/{places}/ratings")
-    public ResponseEntity<PlaceViewDTO> addRating(@PathVariable Long places, @Valid @RequestBody RatingDTO ratingDTO) {
-        PlaceViewDTO updatedPlace = placeService.addRating(places, ratingDTO);
+    @PostMapping("/{placeId}/ratings")
+    public ResponseEntity<PlaceViewDTO> addRating(@PathVariable Long placeId, @Valid @RequestBody RatingDTO ratingDTO) {
+        PlaceViewDTO updatedPlace = placeService.addRating(placeId, ratingDTO);
         return new ResponseEntity<>(updatedPlace, HttpStatus.OK);
     }
 }

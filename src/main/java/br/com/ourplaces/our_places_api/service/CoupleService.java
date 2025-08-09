@@ -11,8 +11,7 @@ import br.com.ourplaces.our_places_api.model.ImportantDate;
 import br.com.ourplaces.our_places_api.model.User;
 import br.com.ourplaces.our_places_api.repository.CoupleRepository;
 import jakarta.transaction.Transactional;
-import org.springframework.context.annotation.Import;
-import org.springframework.security.core.context.SecurityContextHolder;
+ 
 import org.springframework.stereotype.Service;
 import org.springframework.web.multipart.MultipartFile;
 
@@ -22,15 +21,15 @@ import java.util.*;
 @Service
 public class CoupleService {
     private final UserService userService;
+    private final CurrentUserService currentUserService;
     private final CoupleRepository coupleRepository;
     private final CoupleMapper coupleMapper;
-    private final ImportantDateMapper importantDateMapper;
 
-    public CoupleService(CoupleRepository coupleRepository, UserService userService, CoupleMapper coupleMapper, ImportantDateMapper importantDateMapper) {
+    public CoupleService(CoupleRepository coupleRepository, UserService userService, CoupleMapper coupleMapper, CurrentUserService currentUserService) {
         this.coupleRepository = coupleRepository;
         this.userService = userService;
         this.coupleMapper = coupleMapper;
-        this.importantDateMapper = importantDateMapper;
+        this.currentUserService = currentUserService;
     }
 
     @Transactional
@@ -63,10 +62,9 @@ public class CoupleService {
 
     @Transactional
     public CoupleViewDTO addImportantDate(ImportantDateDTO dateDTO) {
-        User currentUser = (User) SecurityContextHolder.getContext().getAuthentication().getPrincipal();
-        Couple couple = coupleRepository.findByUser1IdOrUser2Id(currentUser.getId(), currentUser.getId()).orElseThrow(() -> new ResourceNotFoundException("Couple not found for the authenticated user."));
+        Couple couple = getAuthenticatedCouple();
 
-        ImportantDate newDate = importantDateMapper.toModel(dateDTO);
+        ImportantDate newDate = ImportantDateMapper.toModel(dateDTO);
         couple.getImportantDates().add(newDate);
 
         Couple updatedCouple = coupleRepository.save(couple);
@@ -75,52 +73,52 @@ public class CoupleService {
 
     @Transactional
     public List<ImportantDateDTO> getImportantDates() {
-        User currentUser = (User) SecurityContextHolder.getContext().getAuthentication().getPrincipal();
-        Couple couple = coupleRepository.findByUser1IdOrUser2Id(currentUser.getId(), currentUser.getId())
-                .orElseThrow(() -> new ResourceNotFoundException("Couple not found for the authenticated user."));
+        Couple couple = getAuthenticatedCouple();
 
-        return importantDateMapper.toDTOList(couple.getImportantDates());
+        return couple.getImportantDates().stream()
+                .map(ImportantDateMapper::toDTO)
+                .toList();
     }
 
     @Transactional
     public CoupleViewDTO getCouple() {
-        User currentUser = (User) SecurityContextHolder.getContext().getAuthentication().getPrincipal();
-        Couple couple = coupleRepository.findByUser1IdOrUser2Id(currentUser.getId(), currentUser.getId()).orElseThrow(() -> new ResourceNotFoundException("Couple not found for the authenticated user."));
+        Couple couple = getAuthenticatedCouple();
 
         return coupleMapper.toViewDTO(couple);
     }
 
     @Transactional
-    public void updateCouplePicture(MultipartFile file) throws IOException {
-        if (file.isEmpty()) {
-            throw new IllegalArgumentException("\n" + "Empty file.");
+    public void updateCouplePicture(MultipartFile file) {
+        if (file.isEmpty()) throw new IllegalArgumentException("File not sent.");
+        if (file.getSize() > 5 * 1024 * 1024) throw new IllegalArgumentException("File too large. Maximum 5MB.");
+        if (!Objects.requireNonNull(file.getContentType()).startsWith("image/")) throw new IllegalArgumentException("Invalid file type. Please upload an image.");
+
+        Couple couple = getAuthenticatedCouple();
+
+        try {
+            couple.setCouplePicture(file.getBytes());
+            couple.setPictureMediaType(file.getContentType());
+        } catch (IOException e) {
+            throw new RuntimeException("Error processing file.", e);
         }
-
-        if (!Objects.requireNonNull(file.getContentType()).startsWith("image/")) {
-            throw new IllegalArgumentException("\n" + "Invalid file type. Please upload an image.");
-        }
-
-        User currentUser = (User) SecurityContextHolder.getContext()
-                .getAuthentication().getPrincipal();
-
-        Couple couple = coupleRepository.findByUser1IdOrUser2Id(currentUser.getId(), currentUser.getId())
-                .orElseThrow(() -> new ResourceNotFoundException("Couple not found for the authenticated user."));
-
-        couple.setCouplePicture(file.getBytes());
-        couple.setPictureMediaType(file.getContentType());
         coupleRepository.save(couple);
     }
 
 
     @Transactional
     public Map<String, Object> getCouplePicture() {
-        User currentUser = (User) SecurityContextHolder.getContext().getAuthentication().getPrincipal();
-        Couple couple = coupleRepository.findByUser1IdOrUser2Id(currentUser.getId(), currentUser.getId()).orElseThrow(() -> new ResourceNotFoundException("Couple not found for the authenticated user."));
+        Couple couple = getAuthenticatedCouple();
 
         if (couple.getCouplePicture() == null) {
             throw new ResourceNotFoundException("Couple does not have a profile picture.");
         }
 
         return Map.of("imageBytes", couple.getCouplePicture(), "mediaType", couple.getPictureMediaType());
+    }
+
+    private Couple getAuthenticatedCouple() {
+        User currentUser = currentUserService.getAuthenticatedUser();
+        return coupleRepository.findByUser1IdOrUser2Id(currentUser.getId(), currentUser.getId())
+                .orElseThrow(() -> new ResourceNotFoundException("Couple not found for the authenticated user."));
     }
 }

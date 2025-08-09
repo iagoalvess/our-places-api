@@ -16,7 +16,7 @@ import br.com.ourplaces.our_places_api.repository.RatingRepository;
 import br.com.ourplaces.our_places_api.repository.UserRepository;
 import jakarta.transaction.Transactional;
 import org.springframework.security.access.AccessDeniedException;
-import org.springframework.security.core.context.SecurityContextHolder;
+ 
 import org.springframework.stereotype.Service;
 
 import java.util.List;
@@ -29,18 +29,20 @@ public class PlaceService {
     private final RatingRepository ratingRepository;
     private final UserRepository userRepository;
     private final PlaceMapper placeMapper;
+    private final CurrentUserService currentUserService;
 
-    public PlaceService(PlaceRepository placeRepository, CoupleRepository coupleRepository, RatingRepository ratingRepository, UserRepository userRepository, PlaceMapper placeMapper) {
+    public PlaceService(PlaceRepository placeRepository, CoupleRepository coupleRepository, RatingRepository ratingRepository, UserRepository userRepository, PlaceMapper placeMapper, CurrentUserService currentUserService) {
         this.placeRepository = placeRepository;
         this.coupleRepository = coupleRepository;
         this.ratingRepository = ratingRepository;
         this.userRepository = userRepository;
         this.placeMapper = placeMapper;
+        this.currentUserService = currentUserService;
     }
 
     @Transactional
     public PlaceViewDTO create(PlaceCreateDTO placeCreateDTO) {
-        User currentUser = (User) SecurityContextHolder.getContext().getAuthentication().getPrincipal();
+        User currentUser = currentUserService.getAuthenticatedUser();
 
         Couple couple = coupleRepository.findByUser1IdOrUser2Id(currentUser.getId(), currentUser.getId()).orElseThrow(() -> new ResourceNotFoundException("Couple not found for the authenticated user."));
 
@@ -61,7 +63,7 @@ public class PlaceService {
 
     @Transactional
     public List<PlaceViewDTO> findAllByCouple() {
-        User currentUser = (User) SecurityContextHolder.getContext().getAuthentication().getPrincipal();
+        User currentUser = currentUserService.getAuthenticatedUser();
         Couple couple = coupleRepository.findByUser1IdOrUser2Id(currentUser.getId(), currentUser.getId()).orElseThrow(() -> new ResourceNotFoundException("Couple not found for the authenticated user."));
 
         List<Place> places = placeRepository.findAllByCoupleId(couple.getId());
@@ -71,9 +73,7 @@ public class PlaceService {
 
     @Transactional
     public PlaceViewDTO addRating(Long placeId, RatingDTO ratingDTO) {
-        User principal = (User) SecurityContextHolder.getContext().getAuthentication().getPrincipal();
-
-        User currentUser = userRepository.findById(principal.getId()).orElseThrow(() -> new ResourceNotFoundException("Authenticated user not found in database."));
+        User currentUser = userRepository.findById(currentUserService.getAuthenticatedUser().getId()).orElseThrow(() -> new ResourceNotFoundException("Authenticated user not found in database."));
 
         Place place = placeRepository.findById(placeId).orElseThrow(() -> new ResourceNotFoundException("Place not found with id: " + placeId));
 

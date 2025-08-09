@@ -5,14 +5,14 @@ import br.com.ourplaces.our_places_api.model.Couple;
 import org.mapstruct.Mapper;
 import org.mapstruct.Mapping;
 
-@Mapper(componentModel = "spring", uses = {UserMapper.class, ImportantDateMapper.class})
+@Mapper(componentModel = "spring", uses = {UserMapper.class})
 public interface CoupleMapper {
     @Mapping(target = "couplePictureUrl", expression = "java(generatePictureUrl(model))")
     CoupleViewDTO toViewDTO(Couple model);
 
     default String generatePictureUrl(Couple model) {
         if (model != null && model.getCouplePicture() != null && model.getCouplePicture().length > 0) {
-            return "/couples/picture";
+            return "/api/couples/picture";
         }
         return null;
     }
